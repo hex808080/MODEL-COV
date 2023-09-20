@@ -1,0 +1,58 @@
+{
+	"QMRI": {
+		"data": {
+			"FA":		"duc-dti-fa", 
+			"MD":		"duc-dti-md", 
+			"VFintra":	"duc-noddi-vfintra", 
+			"ODI":		"duc-noddi-odi", 
+			"VFiso":	"duc-noddi-vfiso", 
+			"T2b":		"ducav-t2b", 
+			"BPF":		"ducav-bpf", 
+			"T1":		"duc-t1", 
+			"T2":		"par-t2"
+		},
+		"rois": "3dt12epi-seg",
+		"lesions": "les2epi-mask",
+		"indx": {
+			"les": 6,
+			"WM": 3,
+			"cGM": 2,
+			"dGM": 4,
+			"BS": 5
+			}
+	},
+	"SPGR": {
+		"data": {
+			"PD":	"qPDmap_good", 
+			"T2*":	"t2s_map_TxyME_good", 
+			"QSM":	"qsm"
+			},
+		"rois": "segFile",
+		"lesions": "T1-lesions",
+		"indx": {
+			"les": 6,
+			"WM": 3,
+			"cGM": 2,
+			"dGM": 4,
+			"BS": 5
+			}	
+	},
+	"3DT1": {
+		"data": {"volume":	"TIV"},
+		"rois": ["NeuroMorph_Segmentation", "lesions_mask_t1_space-bin.nii.gz"],
+		"indx": {
+			"les": 6,
+			"WM": 3,
+			"cGM": 2,
+			"dGM": 4,
+			"BS": 5
+			},
+		"volumes": true
+	},
+	"MNI": {
+		"data": {"CBF":	"CBF_2mm-atlas_space"},
+		"rois": "/home/ferran/data/atlas_mni/GIF2/MNI152_T1_2mm_NeuroMorph_Segmentation.nii.gz",
+		"indx": {"cGM": 2}
+	}
+}
+
