@@ -25,6 +25,10 @@ def set_default_dict(input_dict, default_dict):
 	return result_dict
 
 def check_config(config, conf):
+	for key in config.keys():
+		if type(config[key]) == str:
+			config[key] = [config[key]]
+
 	if (len(config['data']) == 0) or (len(config['rois']) == 0):
 		print(config['data'], config['rois'])
 		print('\nERROR: Configuration fields "data" and/or "rois" for', conf, 'do not exist or are empty lists. Please provide at least one element for both fields.')
@@ -53,10 +57,6 @@ def check_config(config, conf):
 		print('\nERROR: "volumes" field for', conf, 'must be <bool>. If specified, please set as <True> or <False>.')
 		exit()
 		
-	for key in config.keys():
-		if type(config[key]) == str:
-			config[key] = [config[key]]
-	
 	return config
 	
 # Iterate over each subject and unzip relevant files into the corresponding folder
@@ -141,7 +141,7 @@ def process_subjects(folder):
 			if les.size:
 				for s_i in range(seg.shape[-1]):
 					for l_i in range(les.shape[-1]):
-						seg[:,:,:,s_i] = seg[:,:,:,s_i] - binary_dilation(les[:,:,:,l_i], structure = np.ones((3, 3, 3), dtype=np.uint8))
+						seg[:,:,:,s_i] = seg[:,:,:,s_i] - binary_dilation(les[:,:,:,l_i], structure = np.ones((3, 3, 3), dtype = np.uint8))
 						
 				seg = np.concatenate((seg, les), axis = -1)
 

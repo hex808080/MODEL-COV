@@ -39,7 +39,7 @@
 	},
 	"3DT1": {
 		"data": {"volume":	"TIV"},
-		"rois": ["NeuroMorph_Segmentation", "lesions_mask_t1_space-bin.nii.gz"],
+		"rois": ["NeuroMorph_Segmentation", "lesions_mask_t1_space-bin"],
 		"indx": {
 			"les": 6,
 			"WM": 3,
