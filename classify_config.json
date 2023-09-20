@@ -1,0 +1,46 @@
+{
+	"random_forest_config": {
+		"N_split": 5,
+		"N_iter": 1,
+		"resampling": "under",
+		"N_shuffle": 0,
+		"output": "results_median"
+	},	
+	"random_forest_plot_config": {
+		"groups": {
+			"Fe": [
+				"T2*",
+				"QSM"
+			],
+			"Myelin": [
+				"T2b",
+				"BPF",
+				"T1"
+			],
+			"Inflammation": [
+				"MD",
+				"VFiso",
+				"T2#",
+				"PD"			
+			],
+			"μ-structure": [
+				"FA",
+				"VFintra",
+				"ODI"
+			],
+			"Atrophy": [
+				"volume"
+			],
+			"Metabolism": [
+				"CBF"
+			]
+		},
+		"fontsize": 12,
+		"figsize": [
+			10,
+			6
+		],
+		"N_bars": 100,
+		"output": "results_median"
+	}
+}
