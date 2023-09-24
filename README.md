@@ -18,7 +18,7 @@ No installation is required, however it is recommended to use the following cond
   -  `volumes`: _optional_. Set as True to calculate ROI volumes instead of mean/median/standard deviation. It assumes a brain mask has been provided as `data`.
 - Run `make_table.py`, for example:
   
-  ```python -W ignore make_table.py -d ../data -j make_table_config.json -u -t results_20230912.xlsx --id B-number```
+  ```python -W ignore make_table.py -d ../data -j make_table_config.json -u -t demographics_table.xlsx --id B-number```
   - `-d`: subject folders are in `../data`.
   - `-j`: required files and index details are reported in `make_table_config.json`.
   - `-u`: look for the relevant files inside compressed folders, and unzip them if necessary.
