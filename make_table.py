@@ -318,5 +318,5 @@ if __name__ == "__main__":
 		output = 'table_' + today + '_'
 
 	for key in table.keys():
-		table_df[key].to_csv(directory + '/' + output + key + '.csv', index=False)
+		table_df[key].to_csv(output + key + '.csv', index=False)
 
