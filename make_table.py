@@ -315,7 +315,7 @@ if __name__ == "__main__":
 		output = args.output + '_'
 	else:
 		today = datetime.now().strftime("%Y%m%d")
-		output = 'results_' + today + '_'
+		output = 'table_' + today + '_'
 
 	for key in table.keys():
 		table_df[key].to_csv(directory + '/' + output + key + '.csv', index=False)
