@@ -5,6 +5,7 @@ import pandas as pd
 import statsmodels.api as sm
 import json, argparse
 from sklearn.impute import KNNImputer
+import multiprocessing
 
 def categorical_to_int(data):
 	# Convert categorical variables to integers
@@ -75,6 +76,14 @@ def regress_out(data, indep_name, ref_indx = None, sigLevel = None):
 
 	return corr_var
 
+def make_groups(groups_list):
+	new_list = []
+	for items in groups_list:
+		groups = items.split('+')
+		new_list.append(groups)
+
+	return(new_list)
+
 def classify(X_all, label, covariates, reference, config = {}):
 
 	X, y = X_all.loc[:, ~(X_all.columns == label)], X_all[label]
@@ -98,12 +107,14 @@ if __name__ == "__main__":
 	parser = argparse.ArgumentParser(description="Process CSV file with optional inputs")
 	parser.add_argument("csv_filename",		type=str,					help="Input CSV filename.")
 	parser.add_argument("labels",			type=str,					help="Name of the column containing group labels.")
-	parser.add_argument("--groups",			type=str, 	nargs='+', 	default=None,	help="Names of the two groups to classify (default:).")		
-	parser.add_argument("--covariates",		type=str, 	nargs='+', 	default=None,	help="Name of the columns containing covariates to be regressed out from the dataset (default: no regression).")	
-	parser.add_argument("--reference",		type=str,	nargs='+',	default=None,	help="Reference group(s) on which to calculate regression coefficients. Only used if covariates are provided (default: regress over the whole dataset).")
-	parser.add_argument("--exclude",		type=str, 	nargs='+', 	default=None,	help="Name of the columns to exclude from the dataset (default: None).")
-	parser.add_argument("--keep",			type=str, 	nargs='+', 	default=None,	help="Name of the columns to keep from the dataset (default: None).")	
-	parser.add_argument("--json_config",	type=str, 				default=None,	help="Optional JSON filename for plot formatting (default: None).")
+	parser.add_argument("-g",	"--groups",	type=str, 	nargs='+', 	default=None,	help="Names of the two groups to classify (default:).")		
+	parser.add_argument("-c",	"--covariates",	type=str, 	nargs='+', 	default=None,	help="Name of the columns containing covariates to be regressed out from the dataset (default: no regression).")	
+	parser.add_argument("-r",	"--reference",	type=str,	nargs='+',	default=None,	help="Reference group(s) on which to calculate regression coefficients. Only used if covariates are provided (default: regress over the whole dataset).")
+	parser.add_argument("-e",	"--exclude",	type=str, 	nargs='+', 	default=None,	help="Name of the columns to exclude from the dataset (default: None).")
+	parser.add_argument("-k",	"--keep",	type=str, 	nargs='+', 	default=None,	help="Name of the columns to keep from the dataset (default: None).")	
+	parser.add_argument("-j",	"--json_config",type=str,			default=None,	help="Name of JSON file containing additional parameters for classification and formatting (default: None).")
+	parser.add_argument("-o",	"--output",	type=str,			default=None,	help="Name prefix of output files (default: results_[YYYYMMDD]).")
+	parser.add_argument("-n",       "--ncpu",       default=multiprocessing.cpu_count(),    	help="Number of CPUs to use (default: " + str(multiprocessing.cpu_count()) + ")")
 	
 	args = parser.parse_args()
 	csv_filename = args.csv_filename
@@ -118,20 +129,36 @@ if __name__ == "__main__":
 		table = table[args.keep]
 	if args.exclude:
 		table = table.drop(columns = args.exclude)
-			
+
 	if groups:
+		groups = make_groups(groups)
+		group_labels = [", ".join(g) for g in groups]
+		for g_i in range(len(groups)): table.loc[table[labels].isin(groups[g_i]), labels] = group_labels[g_i]
+		groups = group_labels
 		table = table.loc[table[labels].isin(groups), :]	
-		table.sort_values(by = labels, key = lambda column: column.map(lambda e: groups.index(e)), inplace = True)
+		table.sort_values(by = labels, key = lambda column: column.map(lambda e: group_labels.index(e)), inplace = True)
 	else:
 		table = table.sort_values(by = labels)
 	
+	# Check config file. Create empty config file if none is provided
 	config = dict()
 	if json_filename:
 		with open(json_filename) as config_json:
 			config = json.load(config_json)
 	else:
 		config = {}
-		
+
+	# Check output parameter
+	if args.output:
+		output = args.output + '_'
+	else:
+		today = datetime.now().strftime("%Y%m%d")
+		output = 'results_' + today + '_'
+	config['output'] = output
+
+	# Check NCPU parameter
+	config['ncpu'] = min(multiprocessing.cpu_count(), int(args.ncpu))
+
 	classify(table, labels, covariates, reference, config)
 	
 	# MUST: 

@@ -10,7 +10,7 @@ import nibabel as nib
 from scipy.ndimage import binary_dilation
 from datetime import datetime
 from pqdm.processes import pqdm
-from tqdm import tqdm
+from tqdm import tqdm 
 import multiprocessing
 
 def set_default_dict(input_dict, default_dict):
@@ -187,14 +187,14 @@ if __name__ == "__main__":
 	parser = argparse.ArgumentParser(description="Process data files")
 
 	# Optional arguments
-	parser.add_argument("-d",	"--directory",	default=os.getcwd(), 	help="Path where to execute the script")
-	parser.add_argument("-o",	"--output",		default=None,			help="Name for the output file")
-	parser.add_argument("-t", 	"--table", 		default=None, 			help="Name of the CSV or XLS file")
-	parser.add_argument("--col",	nargs='+',	default=[], 			help="Names of columns in the data file")
-	parser.add_argument("--id", 				default=None, 			help="Name of the column containing subject IDs")
-	parser.add_argument("-u", "--unzip", 		action="store_true", 	help="Unzip files")
-	parser.add_argument("-j", "--json_config", 	default=None, 			help="JSON configuration file")
-	parser.add_argument("-n", "--ncpu", 		default=multiprocessing.cpu_count(), 	help="Number of CPUs to use (default: " + str(multiprocessing.cpu_count()) + ")")	
+	parser.add_argument("-d",	"--directory",	default=os.getcwd(), 	help="Path to subject data folders (default: ./).")
+	parser.add_argument("-o",	"--output",	default=None,		help="Prefix for the output file (default: results_YYYYMMDD).")
+	parser.add_argument("-t", 	"--table", 	default=None, 		help="Name of the CSV or XLS file to be concatenated to the regional scores (default: None).")
+	parser.add_argument("--col",	nargs='+',	default=[], 		help="If table is provided: names of columns to include (default: use all columns).")
+	parser.add_argument("--id", 			default=None, 		help="If table is provided: name of the column containing subject IDs (required).")
+	parser.add_argument("-u",	"--unzip", 	action="store_true", 	help="Unzip files (default: False).")
+	parser.add_argument("-j", 	"--json_config",default=None, 		help="JSON configuration file (required).")
+	parser.add_argument("-n", 	"--ncpu", 	default=multiprocessing.cpu_count(),	help="Number of CPUs to use (default: " + str(multiprocessing.cpu_count()) + ")")	
 
 	# Parse the command line arguments
 	args = parser.parse_args()
