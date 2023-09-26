@@ -128,7 +128,7 @@ def process_subjects(folder):
 	hdr = ['B-number', 'Study']
 	for key in table.keys():
 		row[key] = [folder.split('_')[1],	# B-number
-				folder.split('_')[2]]		# study
+				folder.split('_')[2]]	# study
 
 	for conf in config.keys():
 		features, labels = config[conf]['data'], config[conf]['data_name'] 
@@ -192,7 +192,7 @@ if __name__ == "__main__":
 
 	# Optional arguments
 	parser.add_argument("-d",	"--directory",	default=os.getcwd(), 	help="Path to subject data folders (default: ./).")
-	parser.add_argument("-o",	"--output",	default=None,		help="Prefix for the output file (default: results_YYYYMMDD).")
+	parser.add_argument("-o",	"--output",	default=None,		help="Prefix for the output files (default: table_YYYYMMDD).")
 	parser.add_argument("-t", 	"--table", 	default=None, 		help="Name of the CSV or XLS file to be concatenated to the regional scores (default: None).")
 	parser.add_argument("--col",	nargs='+',	default=[], 		help="If table is provided: names of columns to include (default: use all columns).")
 	parser.add_argument("--id", 			default=None, 		help="If table is provided: name of the column containing subject IDs (required).")
