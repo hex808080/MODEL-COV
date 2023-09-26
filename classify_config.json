@@ -1,0 +1,86 @@
+{
+	"_README": [
+		"This is a sample JSON configuration file for the random_forest algorithm showing all the available fields.",
+		"In the specific case of the random_forest algorithm, default values for all fields are also defined inside the script: all the fields are therefore optional, including the entire JSON configuration file itself.",
+		"Different algotrithms may require different configuration files as defined by their implementation, which may or may not be optional.",
+		"The random_forest algorithm configuration file is split into two main fields:",
+		"       random_forest_config:   confgure the random forest classifier. It contains the following fields:",
+		"               N_trees:        number of trees in the random forest (default: 100);",
+		"               N_split:        number of K-fold splits (default: 10);",
+		"               N_iter:         number of stratified iterations (default: 100);",
+		"               N_shuffle:      number of label-shuffling iterations to determine significance of classification performance scores (default: 0; recommended: 100):",
+		"               resampling:     type of resampling method to use in case of umbalanced data (default: under):",
+		"                       nores:  no resampling",
+		"                       under:  randomly undersample the majority class to match the minority class",
+		"                       SMOTE:  oversample the minority class to match the majority class via Synthetic Minority Oversampling Technique",
+		"               random_state:   for reproducibility (default: 42).",		
+		"       random_forest_plot_config: confgure the random forest plot. It contains the following fields:",
+		"               groups:         colour-group features in the bar plot, i.e. colour bars associated to features within the same group with the same colour. The legend will show the corresponding group label (default: no grouping).",
+		"                               The specified feature names can be partial, e.g. T2b will match with WM_T2b, cGM_T2b, etc.",
+		"                               In case of ambiguity, try using the # special character, e.g. T2 will match with WM_T2, cGM_T2, etc, as well as (incorrectly) WM_T2b, cGM_T2b, etc. By specifying T2# in the configuration group, only WM_T2, cGM_T2, etc will match;",
+		"               fontsize:       size of the font in pt to use in the plot (default: 12);",
+		"               figsize:        size of the figure in inches to use in the plot (default: [10, 6]);",
+		"               palette_bar:    palette to use for the bar plot. It accepts string or list (default: tab10):",
+		"                       string: name of an existent matplotlib palette (https://matplotlib.org/stable/users/explain/colors/colormaps.html)",
+		"                       list:   custom list of RGB values (below, RGB values for tab10 palette are reported as an example)",
+                "               palette_box:    palette to use for the box plot. It accepts string or list (default: Pastel2). See palette_bar for details;",
+                "               N_bars:         number of features to plot (default: -1 for all features);",
+                "               mpl_save:       save the image as object for further customisation (default: false)"
+		],
+  
+	"random_forest_config": {
+		"N_trees":      1000,
+		"N_split": 	10,
+		"N_iter": 	100,
+		"N_shuffle": 	0,
+		"resampling": 	"under"		
+	},	
+	
+	"random_forest_plot_config": {
+		"groups": {
+			"Fe": [
+				"T2*",
+				"QSM"
+			],
+			"Myelin": [
+				"T2b",
+				"BPF",
+				"T1"
+			],
+			"Inflammation": [
+				"MD",
+				"VFiso",
+				"T2#",
+				"PD"			
+			],
+			"μ-structure": [
+				"FA",
+				"VFintra",
+				"ODI"
+			],
+			"Atrophy": [
+				"volume"
+			],
+			"Metabolism": [
+				"CBF"
+			]
+		},
+		"fontsize": 	12,
+		"figsize": 	[10, 6],
+		"palette_bar": [
+			[0.12156862745098039, 0.4666666666666667, 0.7058823529411765, 1.0], 
+			[1.0, 0.4980392156862745, 0.054901960784313725, 1.0], 
+			[0.17254901960784313, 0.6274509803921569, 0.17254901960784313, 1.0], 
+			[0.8392156862745098, 0.15294117647058825, 0.1568627450980392, 1.0], 
+			[0.5803921568627451, 0.403921568627451, 0.7411764705882353, 1.0], 
+			[0.5490196078431373, 0.33725490196078434, 0.29411764705882354, 1.0], 
+			[0.8901960784313725, 0.4666666666666667, 0.7607843137254902, 1.0], 
+			[0.4980392156862745, 0.4980392156862745, 0.4980392156862745, 1.0], 
+			[0.7372549019607844, 0.7411764705882353, 0.13333333333333333, 1.0], 
+			[0.09019607843137255, 0.7450980392156863, 0.8117647058823529, 1.0]
+		],
+		"palette_box":	"Pastel2",
+		"N_bars": 	-1,
+		"mpl_save": 	false
+	}
+}

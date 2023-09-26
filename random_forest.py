@@ -84,6 +84,11 @@ def random_forest_plot(X, y, results, config):
 	importances = 		np.array(results['importances']['mean'])
 	importances_std = 	np.array(results['importances']['std'])	
 
+	if 'random_forest_plot_config' in config.keys():
+		config_plt = config['random_forest_plot_config']
+	else:
+		config_plt = {}
+		
 	default_config = {
 		'N_bars': 		len(indx),
 		'figsize':		[10, 6],
@@ -94,17 +99,18 @@ def random_forest_plot(X, y, results, config):
 		'svg_save':		False		
 	}
 
-	config_plt = set_default_dict(config['random_forest_plot_config'], default_config)
+	config_plt = set_default_dict(config_plt, default_config)
 	config['random_forest_plot_config'] = config_plt
 	plt.rcParams.update({'font.size': int(0.9*config_plt['fontsize'])})
 
-	N = np.min([len(indx), config_plt['N_bars']])
+	if config_plt['N_bars'] < 0: N = len(indx)
+	else: N = np.min([len(indx), config_plt['N_bars']])
 	indx_ = indx[0:N]
 	features_ = [X.columns[j] for j in indx_]
 	importances_ = importances[0:N]
 	importances_std_ = importances_std[0:N]
 
-	labels = list(set(y))
+	labels = list(np.unique(y))
 	table_plt = X.iloc[:, indx_]
 	table_plt['group'] = y
 	table_plt = pd.melt(table_plt, id_vars='group', var_name='feature')
@@ -149,7 +155,7 @@ def random_forest_plot(X, y, results, config):
 	f.tight_layout(pad = 0, h_pad = 0, w_pad = 0)
 	f.subplots_adjust(hspace = 0)
 
-	title = labels[0] + ' vs ' + labels[1]
+	title = ' vs '.join([str(l) for l in labels])
 	ax[0].set_title(title, fontsize = config_plt['fontsize'], fontweight = 'bold')
 	ax[1].set_xlabel('Features', fontsize = config_plt['fontsize'])
 	
@@ -218,7 +224,7 @@ def run(X, y, config = {}):
 		'N_trees':	1000,
 		'N_split':	10,
 		'N_iter':	100,
-		'N_shuffle':	100,
+		'N_shuffle':	0,
 		'random_state':	42,
 		'resampling':	'under'
 	}
@@ -233,7 +239,7 @@ def run(X, y, config = {}):
 	if config_rf['N_shuffle'] and (config_rf['N_shuffle'] > 0):
 		for n in tqdm (range(config_rf['N_shuffle']), desc = 'Randomising...'):
 			y = y.sample(frac = 1, random_state = config_rf['random_state'])
-			results_rng.append(random_forest_classify(X, y, config, None))
+			results_rng.append(random_forest_classify(X, y, config, False))
 
 		scores_rng = np.array([results_rng[i]['scores']['mean'] for i in range(config_rf['N_shuffle'])])
 		p = np.mean(scores_rng >= results['scores']['mean'], axis = 0)

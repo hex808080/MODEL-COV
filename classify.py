@@ -117,7 +117,7 @@ def classify(X_all, label, covariates, reference, config = {}):
 if __name__ == "__main__":
 
 	parser = argparse.ArgumentParser(description="Process CSV file with optional inputs")
-	parser.add_argument("csv_filename",		type=str,					help="Input CSV filename.")
+	parser.add_argument("filename",			type=str,					help="Input CSV filename.")
 	parser.add_argument("labels",			type=str,					help="Name of the column containing group labels.")
 	parser.add_argument("-g",	"--groups",	type=str, 	nargs='+', 	default=None,	help="Names of the two groups to classify (default:).")		
 	parser.add_argument("-c",	"--covariates",	type=str, 	nargs='+', 	default=None,	help="Name of the columns containing covariates to be regressed out from the dataset (default: no regression).")	
@@ -127,18 +127,34 @@ if __name__ == "__main__":
 	parser.add_argument("-a",	"--algorithm",	type=str,	default="random_forest",	help="Name of algorithm to use. A python function with the same name must be available for import (default: random_forest).")
 	parser.add_argument("-j",	"--json_config",type=str,			default=None,	help="Name of JSON file containing additional parameters for classification and formatting (default: None).")
 	parser.add_argument("-i",	"--intermediates", type=str,			default=None,	help="Name of the folder storing intermediate files, e.g. corrected table (default: None).")
-	parser.add_argument("-o",	"--output",	type=str,			default=None,	help="Name prefix of output files (default: results_[YYYYMMDD]).")
+	parser.add_argument("-o",	"--output",	type=str,			default=None,	help="Name prefix of output files (default: results_YYYYMMDD).")
 	parser.add_argument("-n",       "--ncpu",       default=multiprocessing.cpu_count(),    	help="Number of CPUs to use (default: " + str(multiprocessing.cpu_count()) + ")")
 	
 	args = parser.parse_args()
-	csv_filename = args.csv_filename
+	filename = args.filename
 	labels = args.labels
 	groups = args.groups
 	covariates = args.covariates
 	reference = args.reference
 	json_filename = args.json_config
 
-	table = pd.read_csv(csv_filename)
+	# Get input table
+	if filename.endswith(".csv"):
+		# Read CSV file into a DataFrame
+		table = pd.read_csv(filename)
+	elif filename.endswith((".xls", ".xlsx")):
+		# Read Excel file into a DataFrame
+		table = pd.read_excel(filename)
+	else:
+		print("ERROR: Unsupported file format. Please provide a CSV or Excel file.")
+		exit()		
+	
+	# Check labels column exists within table
+	if not(labels in table.columns):
+		print("ERROR: Labels column" + labels + "does not exist in table " + filename + ".")
+		exit()
+	
+	# Filter table
 	if args.keep:
 		if covariates: table = table[np.unique(args.keep + [labels] + covariates)]
 		else: table = table[np.unique(args.keep + [labels])]
