@@ -183,16 +183,4 @@ if __name__ == "__main__":
 	config['ncpu'] = min(multiprocessing.cpu_count(), int(args.ncpu))
 
 	classify(table, labels, covariates, reference, config)
-	
-	# MUST: 
-	#	+ Randomisation step
-	#	+ Return results as json
-	#	+ Add parameter for algorihm
-	#	- Return image as object
-	# 		with open('sample_plot.pkl', 'wb') as f:
-	# 			pickle.dump(plt.gcf(), f)
-
-	# Optional:
-	#	- allow multiple config json files: concatenate
-	#	- allow adding config options via cmd line
 

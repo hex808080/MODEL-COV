@@ -154,6 +154,8 @@ def random_forest_plot(X, y, results, config):
 	ax[1].set_xlabel('Features', fontsize = config_plt['fontsize'])
 	
 	plt.savefig(config['output'] + '.png', dpi = 300, bbox_inches = 'tight')
+	if config_plt['svg_save']: plt.savefig(config['output'] + '.mpl')
+	
 	return plt.gcf(), config
 	
 def random_forest_classify(X, y, config, plot_flag = True):
