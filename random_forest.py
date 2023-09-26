@@ -3,20 +3,17 @@ import pandas as pd
 import matplotlib
 import matplotlib.pyplot as plt
 import seaborn as sns
-import os, json
+import json
 from pqdm.processes import pqdm
 from tqdm import tqdm
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import RepeatedStratifiedKFold, cross_val_score, cross_validate
-from sklearn.metrics import make_scorer, recall_score, roc_auc_score
+from sklearn.metrics import make_scorer, recall_score, roc_auc_score, f1_score, precision_score
 from imblearn.pipeline import Pipeline
 from imblearn.under_sampling import RandomUnderSampler
 from imblearn.over_sampling import SMOTE
 from scipy.ndimage import binary_dilation
 from matplotlib.ticker import FormatStrFormatter
-from datetime import datetime
-
-from sklearn.metrics import make_scorer, f1_score, precision_score, recall_score
 
 def set_default_dict(input_dict, default_dict):
 
@@ -29,23 +26,28 @@ def set_default_dict(input_dict, default_dict):
 
 	return result_dict
 	
-def set_custom_palette(input_data):
+def set_custom_palette(input_data, src = 'mpl'):
+
+	if src == 'mpl': default = plt.get_cmap('tab10')
+	if src == 'sns': default = sns.mpl_palette('Pastel2')
 
 	if isinstance(input_data, str):
 		if input_data in plt.colormaps():
-			return plt.get_cmap(input_data)
+			if src == 'mpl': return plt.get_cmap(input_data)
+			if src == 'sns': return sns.mpl_palette(input_data)
 		else:
-			print(f"Palette '{input_data}' not found. Using the current palette.")
-			return plt.get_cmap()
+			print(f"Palette '{input_data}' not found. Using the default palette.")
+			return default
+
 	elif isinstance(input_data, list) and len(input_data) > 0 and len(input_data[0]) >= 3:
 		try: 
-			return matplotlib.colors.ListedColormap(input_data)
+			if src == 'mpl': return matplotlib.colors.ListedColormap(input_data)
+			if src == 'sns': return sns.color_palette(input_data)
 		except:
-			print("Invalid input data. Using the current palette.")
-			return plt.get_cmap()
+			print("Invalid input data. Using the default palette.")
+			return default
 	else:
-		print("Invalid input data. Using the current palette.")
-		return plt.get_cmap()
+		return default
 		
 def set_bar_palette(barlist, features, groups, palette = None):
 	
@@ -83,11 +85,13 @@ def random_forest_plot(X, y, results, config):
 	importances_std = 	np.array(results['importances']['std'])	
 
 	default_config = {
-		'N_bars': 		np.min([30, len(indx)]),
-		'figsize':		[6, 6],
+		'N_bars': 		len(indx),
+		'figsize':		[10, 6],
 		'fontsize':		12,
 		'groups':		False,
-		'palette':		None
+		'palette_bar':		None,
+		'palette_box':		None,		
+		'svg_save':		False		
 	}
 
 	config_plt = set_default_dict(config['random_forest_plot_config'], default_config)
@@ -118,7 +122,7 @@ def random_forest_plot(X, y, results, config):
 	barlist = ax[0].bar(range(N), importances_, yerr = importances_std_, 
 		capsize = (ax[0].transData.transform((0.5, 0))[0] - ax[0].transData.transform((-0.5, 0))[0])/N/4*0.8, 
 		error_kw = dict(lw = 1, ecolor = '#4B4B4B'))
-	barlist, c_i, legend, palette = set_bar_palette(barlist, features_, config_plt['groups'], config_plt['palette'])
+	barlist, c_i, legend, palette = set_bar_palette(barlist, features_, config_plt['groups'], config_plt['palette_bar'])
 
 	ax[0].set_ylim(0,1.05*np.max(importances_ + importances_std_))
 	ax[0].yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
@@ -133,7 +137,8 @@ def random_forest_plot(X, y, results, config):
 
 	# BOXPLOT
 	sns.boxplot(x = "feature", y = "value", hue = "group", data = table_plt, fliersize = 1,
-		   palette = "Set2", dodge = True, linewidth = 1, ax = ax[1])
+		   palette = set_custom_palette(config_plt['palette_box'], 'sns'),
+		   dodge = True, linewidth = 1, ax = ax[1])
 	plt.xticks(range(N), features_, rotation = 'vertical')
 
 	ax[1].set_ylabel('Standardised data', fontsize = config_plt['fontsize'], labelpad = 12)
@@ -159,9 +164,9 @@ def random_forest_classify(X, y, config, plot_flag = True):
 	random_state = config_rf['random_state']
 
 	scoring = {
-		'F1': make_scorer(f1_score, average='macro'),
-		'Precision': make_scorer(precision_score, average='macro'),
-		'Recall': make_scorer(recall_score, average='macro')
+		'F1': make_scorer(f1_score, average = 'macro', zero_division = 1),
+		'Precision': make_scorer(precision_score, average = 'macro', zero_division = 1),
+		'Recall': make_scorer(recall_score, average = 'macro', zero_division = 1)
 		}
 	if len(np.unique(y)) == 2:
 		scoring['ROC-AUC'] = make_scorer(roc_auc_score, needs_proba = True)
@@ -200,7 +205,7 @@ def random_forest_classify(X, y, config, plot_flag = True):
 	
 	return results
 
-def random_forest(X, y, config = {}):
+def run(X, y, config = {}):
 
 	if 'random_forest_config' in config.keys():
 		config_rf = config['random_forest_config']
@@ -210,7 +215,7 @@ def random_forest(X, y, config = {}):
 	default_config = {
 		'N_trees':	1000,
 		'N_split':	10,
-		'N_iter':	10,
+		'N_iter':	100,
 		'N_shuffle':	100,
 		'random_state':	42,
 		'resampling':	'under'

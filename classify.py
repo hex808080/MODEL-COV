@@ -1,11 +1,12 @@
-from random_forest import *
-
 import numpy as np
 import pandas as pd
 import statsmodels.api as sm
 import json, argparse
 from sklearn.impute import KNNImputer
 import multiprocessing
+import importlib
+from datetime import datetime
+import os
 
 def categorical_to_int(data):
 	# Convert categorical variables to integers
@@ -51,12 +52,13 @@ def regress_out(data, indep_name, ref_indx = None, sigLevel = None):
 
 	if sigLevel == None: sigLevel = 0.05/len(dep_var.columns)
 
+	hdr = list(indep_var.columns) + [cov + "_2" for cov in indep_var.columns]
+	log = pd.DataFrame([], columns = [h + '_beta' for h in hdr] + ['const_beta'] + [h + '_pval' for h in hdr] + ['const_pval'], index = dep_var.columns)
 	corr_var = dep_var.copy()
 	for col in dep_var.columns:
 		y, X_opt = dep_var[col], pd.concat([indep_var, indep_var**2], axis = 1)
-		X_opt.columns = list(indep_var.columns) + [cov + "_2" for cov in indep_var.columns]
+		X_opt.columns = hdr
 		X_opt = sm.add_constant(X_opt)
-
 		model = sm.OLS(endog = y[ref_indx], exog = X_opt.loc[ref_indx,:], missing = 'drop').fit()
 		pVals = model.pvalues
 	
@@ -74,7 +76,10 @@ def regress_out(data, indep_name, ref_indx = None, sigLevel = None):
 
 			corr_var[col] = residuals
 
-	return corr_var
+		log.loc[col, [p + '_pval' for p in pVals.keys()]] = pVals.values
+		log.loc[col, [p + '_beta' for p in pVals.keys()]] = model.params.values
+
+	return corr_var, log
 
 def make_groups(groups_list):
 	new_list = []
@@ -95,12 +100,19 @@ def classify(X_all, label, covariates, reference, config = {}):
 	if covariates:
 		if reference: ref_indx = y.isin(reference)
 		else: ref_indx = np.ones(y.size, dtype = bool) 
-		X = regress_out(X, covariates, ref_indx)
+		X, log = regress_out(X, covariates, ref_indx)
+
+	if config['intermediates']:
+		X.to_csv(os.path.join(config['intermediates'], 'table_corrected.csv'))
+		log.to_csv(os.path.join(config['intermediates'], 'table_corrected_beta.csv'))
 
 	# Remove outliers, impute missing values and standardise dataset
 	X, y = clean_impute_standardise(X, y)
 
-	results = random_forest(X, y, config)
+	if config['intermediates']:
+		X.to_csv(os.path.join(config['intermediates'], 'table_impstd.csv'))
+
+	results = config['algorithm'].run(X, y, config)
 		
 if __name__ == "__main__":
 
@@ -112,7 +124,9 @@ if __name__ == "__main__":
 	parser.add_argument("-r",	"--reference",	type=str,	nargs='+',	default=None,	help="Reference group(s) on which to calculate regression coefficients. Only used if covariates are provided (default: regress over the whole dataset).")
 	parser.add_argument("-e",	"--exclude",	type=str, 	nargs='+', 	default=None,	help="Name of the columns to exclude from the dataset (default: None).")
 	parser.add_argument("-k",	"--keep",	type=str, 	nargs='+', 	default=None,	help="Name of the columns to keep from the dataset (default: None).")	
+	parser.add_argument("-a",	"--algorithm",	type=str,	default="random_forest",	help="Name of algorithm to use. A python function with the same name must be available for import (default: random_forest).")
 	parser.add_argument("-j",	"--json_config",type=str,			default=None,	help="Name of JSON file containing additional parameters for classification and formatting (default: None).")
+	parser.add_argument("-i",	"--intermediates", type=str,			default=None,	help="Name of the folder storing intermediate files, e.g. corrected table (default: None).")
 	parser.add_argument("-o",	"--output",	type=str,			default=None,	help="Name prefix of output files (default: results_[YYYYMMDD]).")
 	parser.add_argument("-n",       "--ncpu",       default=multiprocessing.cpu_count(),    	help="Number of CPUs to use (default: " + str(multiprocessing.cpu_count()) + ")")
 	
@@ -123,10 +137,11 @@ if __name__ == "__main__":
 	covariates = args.covariates
 	reference = args.reference
 	json_filename = args.json_config
-	
+
 	table = pd.read_csv(csv_filename)
 	if args.keep:
-		table = table[args.keep]
+		if covariates: table = table[np.unique(args.keep + [labels] + covariates)]
+		else: table = table[np.unique(args.keep + [labels])]
 	if args.exclude:
 		table = table.drop(columns = args.exclude)
 
@@ -139,22 +154,30 @@ if __name__ == "__main__":
 		table.sort_values(by = labels, key = lambda column: column.map(lambda e: group_labels.index(e)), inplace = True)
 	else:
 		table = table.sort_values(by = labels)
-	
-	# Check config file. Create empty config file if none is provided
-	config = dict()
+
+	# Check config file. Create default config file if none is provided
 	if json_filename:
 		with open(json_filename) as config_json:
 			config = json.load(config_json)
 	else:
 		config = {}
-
+	
+	# Check algorithm
+	if args.algorithm:
+		try: 			config['algorithm'] = importlib.import_module(args.algorithm)
+		except ImportError:	print("ERROR: The specified module '{}' could not be imported.".format(args.algorithm))
+		
 	# Check output parameter
 	if args.output:
-		output = args.output + '_'
+		output = args.output
 	else:
 		today = datetime.now().strftime("%Y%m%d")
-		output = 'results_' + today + '_'
+		output = 'results_' + today
 	config['output'] = output
+
+	# Create intermediates files folder (if any)
+	config['intermediates'] = args.intermediates
+	if config['intermediates'] and not(os.path.exists(config['intermediates'])): os.mkdir(config['intermediates'])
 
 	# Check NCPU parameter
 	config['ncpu'] = min(multiprocessing.cpu_count(), int(args.ncpu))
@@ -164,7 +187,7 @@ if __name__ == "__main__":
 	# MUST: 
 	#	+ Randomisation step
 	#	+ Return results as json
-	#	- Add parameter for algorihm
+	#	+ Add parameter for algorihm
 	#	- Return image as object
 	# 		with open('sample_plot.pkl', 'wb') as f:
 	# 			pickle.dump(plt.gcf(), f)
