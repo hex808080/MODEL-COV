@@ -20,14 +20,14 @@ Currently, `make_table.py` has been written for data processing at the _Institut
 ```python make_table.py [OPTIONS]```
 
 ### Options
-  - `-j`, `--json_config` (str):  **required**. JSON configuration file containing files and index details (see **Configuration**);
-  - `-d`, `--directory` (str):    path where subject folders are located (default: ./);
-  - `-o`, `--output` (str):       prefix for the output files (default: "table_YYYYMMDD")
-  - `-t`, `--table` (str):        XLS or CSV table containing additional information (e.g. demographics) that will be added to the final table (default: None);
-      - `--id` (str):             **required**. If a table is provided, indicates which column to use to match rows with the corresponding subject folder.
-      - `--col` (str):            If a table is provided, indicates which column or columns to include (default: all).
-  - `-u`, `--unzip`:              look for the relevant files inside compressed folders, and unzip them if found.
-  - `-n`, `--ncpu` (int):         number of CPUs to use (default: all available).
+- `-j`, `--json_config` (str):  **required**. JSON configuration file containing files and index details (see **Configuration**).
+- `-d`, `--directory` (str):    Path where subject folders are located (default: ./).
+- `-o`, `--output` (str):       Prefix for the output files (default: "table_YYYYMMDD").
+- `-t`, `--table` (str):        XLS or CSV table containing additional information (e.g. demographics) that will be added to the final table (default: None).
+    - `--id` (str):             **required**. If a table is provided, indicates which column to use to match rows with the corresponding subject folder.
+    - `--col` (str):            If a table is provided, indicates which column or columns to include (default: all columns).
+- `-u`, `--unzip`:              Look for the relevant files inside compressed folders, and unzip them if found.
+- `-n`, `--ncpu` (int):         Number of CPUs to use (default: all available CPUs).
 
 ### Output
   - `<output>_mean.csv`
@@ -61,6 +61,38 @@ The `classify.py` script provides a flexible framework for machine learning and 
 ### Input Arguments
   - `<filename>` (str): The input CSV filename containing your dataset.
   - `<labels>` (str): Name of the column containing group labels.
+
+### Options
+- `-g`, `--groups` (str): Names of the groups to classify (default: use all groups).
+- `-c`, `--covariates` (str): Name of the columns containing covariates to be regressed out from the dataset (default: None).
+- `-r`, `--reference` (str): Reference group(s) on which to calculate regression coefficients. Only used if covariates are provided (default: regress over the whole dataset).
+- `-e`, `--exclude` (str): Name of the columns to exclude from the dataset (default: None).
+- `-k`, `--keep` (str): Name of the columns to keep from the dataset (default: None).
+- `-a`, `--algorithm` (str): Name of the algorithm to use. A Python function with the same name must be available for import and contain a `run(y, X, config)` method (see **Notes**) (default: random_forest).
+- `-j`, `--json_config` (str): Name of a JSON file containing additional parameters for classification and formatting (default: None).
+- `-i`, `--intermediates` (str): Name of the folder storing intermediate files (default: None).
+- `-o`, `--output` (str): Name prefix of output files (default: results_YYYYMMDD).
+- `-n`, `--ncpu` (int): Number of CPUs to use (default: all available CPUs).
+
+### Outputs
+By default, the script will produce output files with filenames starting with `results_YYYYMMDD`, where YYYYMMDD represents the current date. If the `-i` option is used, the following intermediate files will also be saved in the specified directory:
+  - `table_corrected.csv`: table after correcting for covariates, if specified;
+  - `table_corrected_beta.csv`: log of the regression reporting significant regression coefficients and associated p-values.
+  - `table_impstd.csv`: table after imputing for missing values and value standardisation.
+
+### Examples
+#### Basic Usage
+```python -W ignore classify.py table_20230924_mean_fix.csv Pt_group_label```
+#### Advanced Usage
+```python -W ignore classify.py table_20230924_mean_fix.csv Pt_group_label --json_config classify_config.json --exclude B-number Study Project Project_label Gender Pt_group cGM_FA dGM_FA WM_QSM cGM_QSM BS_QSM --covariates Age Gender_label --reference HC -i intermediates --groups HC Long\ COVID```
+
+### Notes
+- Correction for covariates is performed using 2nd order least square. If the `-r` option is used, the regression coefficients will be calculated only on the spedified group, and then applied to the entire dataset. This is particularly useful when grouops and covariates are coupled, e.g. patients are also older than healthy controls, and regressing for age would also regress out information about pathology. By specifying the healthy controls group via `-r`, only healthy controls' data is used to infer the effect of age on the data, and the resulting regression coefficients are then used to correct for age across the whole dataset.
+- Make sure that any algorithm specified with `-a` can be imported from the current working directory. The algorithm implementation **MUST** also contain the method `run(y, X, config)`. The datatype of the input variables (e.g. _list_, _numpy array_, _dictionary_, _pandas dataframe_, etc.) and how the variables are used, depend entirely on the algorithm:
+  - `y`:  variable containing group labels (for classification) or independent variable (for regression);
+  - `X`:  variable containing features (for classification) or dependent variables (for regression);
+  - `config`: variable containing any additional parameter.
+- Use case: wrap any algorithm the user may have access into a `run(y, X, config)` function, defining the input variables accordingly; save the script in the current working directory as `my_algorithm.py`, and then launch `classify.py` with the option `-a my_algorithm`. A JSON configuration file for the specific algorithm can be provided via the `-j` option. This allows the user to expand the functionality of `classify.py` without directly affecting the code. Additional algorithms for machine learning and/or regression may be added to this repository in the future.
 
 ## Random Forest
 TBC
