@@ -36,9 +36,9 @@ Currently, `make_table.py` has been written for data processing at the _Institut
 
 ### Configuration
 Before running `make_table.py`, create your JSON configuration file. Use `make_table_config.json` as reference. The following fields can be listed directly in the JSON file, or can be nested into groups in case of multiple image spaces (as in the example provided):
-  - `data`: **required**. Specifies NIFTI files containing maps of interest. Can be a string, list or a dictionary. If dictionary, the keys are used as labels in the final table. File names can be partial.
-  - `rois`: **required**. Specifies NIFTI files containing segmentations of ROIs. Can be a string or a list. If list, images after the first must be 3D (NOT 4D). File names can be partial.
-  - `lesions`: _optional_. Specifies NIFTI files containing lesions. Dilated lesions (3x3x3 kernel) will be subtracted by segmentation. Lesions will then be added as ROI. If list, images after the first must be 3D (NOT 4D). Can be a string or a list. Lesions will be File names can be partial.
+  - `data`: **required**. Specifies NIFTI files containing maps of interest. Can be a _string_, _list_ or a _dictionary_. If _dictionary_, the keys are used as labels in the final table. File names can be partial.
+  - `rois`: **required**. Specifies NIFTI files containing segmentations of ROIs. Can be a _string_ or a _list_. If _list_, images after the first must be 3D (NOT 4D). File names can be partial.
+  - `lesions`: _optional_. Specifies NIFTI files containing lesions. Dilated lesions (3x3x3 kernel) will be subtracted from the segmentation. Lesions will then be added as ROI. Can be a _string_ or a _list_. If _list_, images after the first must be 3D (NOT 4D). Lesions will be File names can be partial.
   - `indx`: **required**. Specifies which ROI volumes to use. Can be integer, list or dictionary:
     - _integer_: use all volumes up to the specified value;
     - _list_: use volumes indicated in the list;
