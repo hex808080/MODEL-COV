@@ -104,7 +104,10 @@ def get_rois(folder_path, rois, sz = False):
 	seg_flag, seg = True, []
 	for roi in rois:
 		if os.path.exists(roi):	seg_name = [roi]
-		else:			seg_name = glob(folder_path + '/**/*' + roi + '*.nii*', recursive = True)
+		else:	
+			if roi.endswith('.nii.gz'): 	roi = roi.rstrip('.nii.gz')
+			if roi.endswith('.nii'): 	roi = roi.rstrip('.nii')					
+			seg_name = glob(folder_path + '/**/*' + roi + '*.nii*', recursive = True)
 
 		if seg_name: 
 			seg.append(nib.load(seg_name[0]).get_fdata())
@@ -128,7 +131,6 @@ def process_subjects(folder):
 				folder.split('_')[2]]		# study
 
 	for conf in config.keys():
-			
 		features, labels = config[conf]['data'], config[conf]['data_name'] 
 		rois, lesions = config[conf]['rois'], config[conf]['lesions']
 		seg_indx, ROI_name = config[conf]['indx'], config[conf]['indx_name']
@@ -146,6 +148,8 @@ def process_subjects(folder):
 				seg = np.concatenate((seg, les), axis = -1)
 
 			for feat in features:
+				if feat.endswith('.nii.gz'): 	feat = feat.rstrip('.nii.gz')
+				if feat.endswith('.nii'): 	feat = feat.rstrip('.nii')			
 				nii_name = glob(folder_path + '/**/*' + feat + '*.nii*', recursive = True)
 
 				if nii_name:
