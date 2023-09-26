@@ -107,8 +107,10 @@ The `random_forest.py` script is the default algorithm for the `classify.py` fun
 - `config`: (_optional_) _dictionary_ containing configuration parameters.
 
 ### Outputs
-The script will produce output files with filenames starting with `results_YYYYMMDD`
-- ``
+The script will produce output files with filenames prefix determied by the parent function:
+- `*.json`: JSON file containing all radom forest results, e.g. classification performance per iteration, feature importance, etc. 
+- `*.png`: Combined bar- and box-plots reporting ranked feature importance and group values distrinbutions.
+- `*.mpl`: If the `mpl_save` option is used in the configuration file (see **Configuration**). _Matplotlib_ object containing the combined bar- and box-plots.
 
 ### Configuration
 The random_forest algorithm configuration file is divided into two main sections: `random_forest_config` and `random_forest_plot_config`. These sections allow you to fine-tune the behavior of the random forest classifier and customize the appearance of the associated bar- and box-plots. Below are the available configuration options (see `classify_config.json` file):
@@ -126,13 +128,19 @@ The random_forest algorithm configuration file is divided into two main sections
 
 #### random_forest_plot_config
 - `groups`: Color-group features in the bar plot, allowing you to color bars associated with features within the same group with the same color. The legend will display the corresponding group labels (default: no grouping). You can specify partial feature names, and in case of ambiguity, use the # special character for precise matching.
-`fontsize`: Font size in points to use in the plot (default: 12).
-`figsize`: Size of the figure in inches to use in the plot (default: [10, 6]).
-`palette_bar`: Palette to use for the bar plot. It accepts either a string (name of an existing Matplotlib palette) or a custom list of RGB values (default: tab10). For custom lists, you can define your own color scheme.
-`palette_box`: Palette to use for the box plot. Similar to palette_bar, it accepts either a string or a custom list (default: Pastel2).
-`N_bars`: Number of features to include in the plot (default: -1 for all features).
-`mpl_save`: Save the image as an object for further customization (default: false).
+- `fontsize`: Font size in points to use in the plot (default: 12).
+- `figsize`: Size of the figure in inches to use in the plot (default: [10, 6]).
+- `palette_bar`: Palette to use for the bar plot. It accepts either a string (name of an existing Matplotlib palette) or a custom list of RGB values (default: tab10). For custom lists, you can define your own color scheme.
+- `palette_box`: Palette to use for the box plot. Similar to palette_bar, it accepts either a string or a custom list (default: Pastel2).
+- `N_bars`: Number of features to include in the plot (default: -1 for all features).
+- `mpl_save`: Save the image as an object for further customization (default: false).
 
+The parent function (`classify.py`) will add additional fields to the configuration file. **DO NOT** use these keywords for new algorithm scripts:
+- `algorithm`: name of the algorithm to use;
+- `output`: output filename prefix;
+- `intermediates`: name of the folder containing intermediate files produced by the parent function;
+- `ncpu`: number of CPUs to use.
+  
 ## Author
 Antonio Ricciardi, PhD. Contact: _antonio.ricciardi@ucl.ac.uk_
 
