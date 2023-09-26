@@ -124,7 +124,7 @@ if __name__ == "__main__":
 	parser.add_argument("-r",	"--reference",	type=str,	nargs='+',	default=None,	help="Reference group(s) on which to calculate regression coefficients. Only used if covariates are provided (default: regress over the whole dataset).")
 	parser.add_argument("-e",	"--exclude",	type=str, 	nargs='+', 	default=None,	help="Name of the columns to exclude from the dataset (default: None).")
 	parser.add_argument("-k",	"--keep",	type=str, 	nargs='+', 	default=None,	help="Name of the columns to keep from the dataset (default: None).")	
-	parser.add_argument("-a",	"--algorithm",	type=str,	default="random_forest",	help="Name of algorithm to use. A python function with the same name must be available for import (default: random_forest).")
+	parser.add_argument("-a",	"--algorithm",	type=str,	default="random_forest",	help="Name of algorithm to use. A python function with the same name must be available for import and contain a run(y, X, config) method (default: random_forest).")
 	parser.add_argument("-j",	"--json_config",type=str,			default=None,	help="Name of JSON file containing additional parameters for classification and formatting (default: None).")
 	parser.add_argument("-i",	"--intermediates", type=str,			default=None,	help="Name of the folder storing intermediate files, e.g. corrected table (default: None).")
 	parser.add_argument("-o",	"--output",	type=str,			default=None,	help="Name prefix of output files (default: results_YYYYMMDD).")
