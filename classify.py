@@ -119,7 +119,7 @@ if __name__ == "__main__":
 	parser = argparse.ArgumentParser(description="Process CSV file with optional inputs")
 	parser.add_argument("filename",			type=str,					help="Input CSV filename.")
 	parser.add_argument("labels",			type=str,					help="Name of the column containing group labels.")
-	parser.add_argument("-g",	"--groups",	type=str, 	nargs='+', 	default=None,	help="Names of the two groups to classify (default:).")		
+	parser.add_argument("-g",	"--groups",	type=str, 	nargs='+', 	default=None,	help="Names of the groups to classify (default: use all groups).")		
 	parser.add_argument("-c",	"--covariates",	type=str, 	nargs='+', 	default=None,	help="Name of the columns containing covariates to be regressed out from the dataset (default: no regression).")	
 	parser.add_argument("-r",	"--reference",	type=str,	nargs='+',	default=None,	help="Reference group(s) on which to calculate regression coefficients. Only used if covariates are provided (default: regress over the whole dataset).")
 	parser.add_argument("-e",	"--exclude",	type=str, 	nargs='+', 	default=None,	help="Name of the columns to exclude from the dataset (default: None).")
