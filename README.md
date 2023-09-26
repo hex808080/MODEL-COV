@@ -75,7 +75,7 @@ The `classify.py` script provides a flexible framework for machine learning and 
 - `-n`, `--ncpu` (int): Number of CPUs to use (default: all available CPUs).
 
 ### Outputs
-By default, the script will produce output files with filenames starting with `results_YYYYMMDD`, where YYYYMMDD represents the current date. If the `-i` option is used, the following intermediate files will also be saved in the specified directory:
+By default, the script will produce output files with filenames starting with `results_YYYYMMDD`, where YYYYMMDD represents the current date, and the specifics of the outputs will depend on the algorithm chosen via the `-a` option (see **Random Forest**). If the `-i` option is used, the following intermediate files will also be saved in the specified directory:
   - `table_corrected.csv`: table after correcting for covariates, if specified;
   - `table_corrected_beta.csv`: log of the regression reporting significant regression coefficients and associated p-values.
   - `table_impstd.csv`: table after imputing for missing values and value standardisation.
@@ -92,10 +92,46 @@ By default, the script will produce output files with filenames starting with `r
   - `y`:  variable containing group labels (for classification) or independent variable (for regression);
   - `X`:  variable containing features (for classification) or dependent variables (for regression);
   - `config`: variable containing any additional parameter.
-- Use case: wrap any algorithm the user may have access into a `run(y, X, config)` function, defining the input variables accordingly; save the script in the current working directory as `my_algorithm.py`, and then launch `classify.py` with the option `-a my_algorithm`. A JSON configuration file for the specific algorithm can be provided via the `-j` option. This allows the user to expand the functionality of `classify.py` without directly affecting the code. Additional algorithms for machine learning and/or regression may be added to this repository in the future.
+- Use case: wrap any algorithm you may have access to into a `run(y, X, config)` function, defining the input variables accordingly. Save the script in the current working directory as `my_algorithm.py`, and then launch `classify.py` with the option `-a my_algorithm`. A JSON configuration file for the specific algorithm can be provided via the `-j` option. This allows the user to expand the functionality of `classify.py` without directly affecting the code. Additional algorithms for machine learning and/or regression may be added to this repository in the future.
 
 ## Random Forest
-TBC
+### Description
+The `random_forest.py` script is the default algorithm for the `classify.py` function. It uses random forest to perform binary or multi-label classification, returning multiple classification performance scores, and reports the results into a combined bar- and box-plot that clearly shows feature importance and value distributions across groups. A JSON configuration file can be provided to highly customise the classification and plotting, with options to add a randomisation step to calculate the significance of the classification performance scores, custom palettes for feature groupings, and more (see **Configuration**).
+
+### Usage
+`run(y, X, config)`
+
+### Input Arguments
+- `y`: _Pandas dataframe_ containing group labels.
+- `X`: _Pandas dataframe_ containing features.
+- `config`: (_optional_) _dictionary_ containing configuration parameters.
+
+### Outputs
+The script will produce output files with filenames starting with `results_YYYYMMDD`
+- ``
+
+### Configuration
+The random_forest algorithm configuration file is divided into two main sections: `random_forest_config` and `random_forest_plot_config`. These sections allow you to fine-tune the behavior of the random forest classifier and customize the appearance of the associated bar- and box-plots. Below are the available configuration options (see `classify_config.json` file):
+
+#### random_forest_config
+- `N_trees`: Number of trees in the random forest (default: 1000).
+- `N_split`: Number of K-fold splits (default: 10).
+- `N_iter`: Number of stratified iterations (default: 100).
+- `N_shuffle`: Number of label-shuffling iterations to determine the significance of classification performance scores (default: 0; recommended: 100).
+- `resampling`: Type of resampling method to use in case of unbalanced data (default: under):
+    - `nores`: No resampling.
+    - `under`: Randomly undersample the majority class to match the minority class.
+    - `SMOTE`: Oversample the minority class to match the majority class via _Synthetic Minority Oversampling Technique_.
+- `random_state`: Random seed for reproducibility (default: 42).
+
+#### random_forest_plot_config
+- `groups`: Color-group features in the bar plot, allowing you to color bars associated with features within the same group with the same color. The legend will display the corresponding group labels (default: no grouping). You can specify partial feature names, and in case of ambiguity, use the # special character for precise matching.
+`fontsize`: Font size in points to use in the plot (default: 12).
+`figsize`: Size of the figure in inches to use in the plot (default: [10, 6]).
+`palette_bar`: Palette to use for the bar plot. It accepts either a string (name of an existing Matplotlib palette) or a custom list of RGB values (default: tab10). For custom lists, you can define your own color scheme.
+`palette_box`: Palette to use for the box plot. Similar to palette_bar, it accepts either a string or a custom list (default: Pastel2).
+`N_bars`: Number of features to include in the plot (default: -1 for all features).
+`mpl_save`: Save the image as an object for further customization (default: false).
 
 ## Author
 Antonio Ricciardi, PhD. Contact: _antonio.ricciardi@ucl.ac.uk_
