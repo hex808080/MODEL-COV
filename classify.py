@@ -89,31 +89,53 @@ def make_groups(groups_list):
 
 	return(new_list)
 
-def classify(X_all, label, covariates, reference, config = {}):
+def preprocess_data(table, labels, args):
+	# Filter table
+	if args.keep:
+		if args.covariates: 	table = table[np.unique(args.keep + [labels] + args.covariates)]
+		else: 			table = table[np.unique(args.keep + [labels])]
+	if args.exclude: 		table = table.drop(columns = args.exclude)
 
-	X, y = X_all.loc[:, ~(X_all.columns == label)], X_all[label]
+	if args.intermediates: table.to_csv(os.path.join(args.intermediates, 'table_filt.csv'), index = False)
 	
+	X, y = table.loc[:, ~(table.columns == labels)], table[labels]
 	# Convert categorical independent variables (e.g. Gender: "M" / "F") to integers
 	X = categorical_to_int(X)
 
 	# Regress out covariates (if any)
-	if covariates:
-		if reference: ref_indx = y.isin(reference)
-		else: ref_indx = np.ones(y.size, dtype = bool) 
-		X, log = regress_out(X, covariates, ref_indx)
+	if args.covariates:
+		if args.reference: 	ref_indx = y.isin(args.reference)
+		else: 			ref_indx = np.ones(y.size, dtype = bool) 
+		X, log = regress_out(X, args.covariates, ref_indx)
 
-	if config['intermediates']:
-		X.to_csv(os.path.join(config['intermediates'], 'table_corrected.csv'))
-		log.to_csv(os.path.join(config['intermediates'], 'table_corrected_beta.csv'))
+	if args.intermediates:
+		table = pd.concat((X, y), axis = 1)
+		table.to_csv(os.path.join(args.intermediates, 'table_filt_corr.csv'), index = False)
+		log.to_csv(os.path.join(args.intermediates, 'table_filt_corr_beta.csv'), index = False)
 
 	# Remove outliers, impute missing values and standardise dataset
 	X, y = clean_impute_standardise(X, y)
 
-	if config['intermediates']:
-		X.to_csv(os.path.join(config['intermediates'], 'table_impstd.csv'))
+	if args.intermediates: X.to_csv(os.path.join(args.intermediates, 'table_filt_corr_impstd.csv'), index = False)
 
-	results = config['algorithm'].run(X, y, config)
-		
+	# Check groups
+	if args.groups:
+		groups = make_groups(args.groups)
+		group_labels = [', '.join(g) for g in groups]
+		for g_i in range(len(groups)): 	y[y.isin(groups[g_i])] = group_labels[g_i]
+		groups = group_labels
+		X = X.loc[y.isin(groups), :]	
+
+		table = pd.concat((X, y), axis = 1)
+		table.sort_values(by = labels, key = lambda column: column.map(lambda e: group_labels.index(e)), inplace = True)
+	else:	
+		table = pd.concat((X, y), axis = 1)
+		table = table.sort_values(by = labels)	
+
+	if args.intermediates: table.to_csv(os.path.join(args.intermediates, 'table_filt_corr_impstd_grp.csv'), index = False)
+	
+	return table
+
 if __name__ == "__main__":
 
 	parser = argparse.ArgumentParser(description="Process CSV file with optional inputs")
@@ -133,9 +155,6 @@ if __name__ == "__main__":
 	args = parser.parse_args()
 	filename = args.filename
 	labels = args.labels
-	groups = args.groups
-	covariates = args.covariates
-	reference = args.reference
 	json_filename = args.json_config
 
 	# Get input table
@@ -154,23 +173,6 @@ if __name__ == "__main__":
 		print("ERROR: Labels column" + labels + "does not exist in table " + filename + ".")
 		exit()
 	
-	# Filter table
-	if args.keep:
-		if covariates: table = table[np.unique(args.keep + [labels] + covariates)]
-		else: table = table[np.unique(args.keep + [labels])]
-	if args.exclude:
-		table = table.drop(columns = args.exclude)
-
-	if groups:
-		groups = make_groups(groups)
-		group_labels = [", ".join(g) for g in groups]
-		for g_i in range(len(groups)): table.loc[table[labels].isin(groups[g_i]), labels] = group_labels[g_i]
-		groups = group_labels
-		table = table.loc[table[labels].isin(groups), :]	
-		table.sort_values(by = labels, key = lambda column: column.map(lambda e: group_labels.index(e)), inplace = True)
-	else:
-		table = table.sort_values(by = labels)
-
 	# Check config file. Create default config file if none is provided
 	if json_filename:
 		with open(json_filename) as config_json:
@@ -180,7 +182,7 @@ if __name__ == "__main__":
 	
 	# Check algorithm
 	if args.algorithm:
-		try: 			config['algorithm'] = importlib.import_module(args.algorithm)
+		try: 			algorithm = importlib.import_module(args.algorithm)
 		except ImportError:	print("ERROR: The specified module '{}' could not be imported.".format(args.algorithm))
 		
 	# Check output parameter
@@ -198,5 +200,10 @@ if __name__ == "__main__":
 	# Check NCPU parameter
 	config['ncpu'] = min(multiprocessing.cpu_count(), int(args.ncpu))
 
-	classify(table, labels, covariates, reference, config)
+	# Perform filtering, covariate regression, imputation, standardisation 
+	table = preprocess_data(table, labels, args)
+	X, y = table.loc[:, ~(table.columns == labels)], table[labels]
+	
+	# Apply specified algorithm
+	results = algorithm.run(X, y, config)
 
