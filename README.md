@@ -99,7 +99,10 @@ By default, the script will produce output files with filenames starting with `r
 The `random_forest.py` script is the default algorithm for the `classify.py` function. It uses random forest to perform binary or multi-label classification, returning multiple classification performance scores, and reports the results into a combined bar- and box-plot that clearly shows feature importance and value distributions across groups. A JSON configuration file can be provided to highly customise the classification and plotting, with options to add a randomisation step to calculate the significance of the classification performance scores, custom palettes for feature groupings, and more (see **Configuration**).
 
 ### Usage
-`run(y, X, config)`
+```
+from random_forest import *
+run(y, X, config)
+```
 
 ### Input Arguments
 - `y`: _Pandas dataframe_ containing group labels.
