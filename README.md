@@ -101,7 +101,7 @@ The `random_forest.py` script is the default algorithm for the `classify.py` fun
 ### Usage
 ```
 from random_forest import *
-run(y, X, config)
+results = run(y, X, config)
 ```
 
 ### Input Arguments
