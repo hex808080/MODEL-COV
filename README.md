@@ -1,5 +1,5 @@
 # MODEL-COV
-![MODEL_COV_with_legend_](https://github.com/hex808080/MODEL-COV/assets/80628104/7427e997-67f1-486c-8860-4004ce00177f)
+![MODEL_COV_with_legend_](https://github.com/hex808080/MODEL-COV/assets/80628104/25f00c4c-a372-4f75-af04-fe66cfa935a3)
 
 ## Installation
 No installation is required, however it is recommended to use the following conda environment:
