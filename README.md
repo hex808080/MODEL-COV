@@ -141,8 +141,6 @@ The random_forest algorithm configuration file is divided into two main sections
 
 The parent function (`classify.py`) will add additional fields to the configuration file. **DO NOT** use these keywords for new algorithm scripts:
 - `algorithm`: name of the algorithm to use;
-- `output`: output filename prefix;
-- `intermediates`: name of the folder containing intermediate files produced by the parent function;
 - `ncpu`: number of CPUs to use.
   
 ## Author
