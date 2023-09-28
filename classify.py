@@ -33,7 +33,7 @@ def clean_impute_standardise(data, labels, out = np.nan, thr = 1):
 	labels = labels.loc[indx_row]
 
 	# Group-wise impute NaN values
-	for g in np.unique(labels):
+	for g in pd.unique(labels):
 		imp_mean = KNNImputer(missing_values=np.nan).fit(data.loc[labels == g,:])
 		data.loc[labels == g,:] = imp_mean.transform(data.loc[labels == g,:])
 
@@ -51,6 +51,7 @@ def regress_out(data, indep_name, ref_indx = None, sigLevel = None):
 	indep_var = data.loc[:, data.columns.isin(indep_name)]
 
 	if sigLevel == None: sigLevel = 0.05/len(dep_var.columns)
+	else: sigLevel = float(sigLevel)
 
 	hdr = list(indep_var.columns) + [cov + "_2" for cov in indep_var.columns]
 	log = pd.DataFrame([], columns = [h + '_beta' for h in hdr] + ['const_beta'] + [h + '_pval' for h in hdr] + ['const_pval'], index = dep_var.columns)
@@ -92,8 +93,8 @@ def make_groups(groups_list):
 def preprocess_data(table, labels, args):
 	# Filter table
 	if args.keep:
-		if args.covariates: 	table = table[np.unique(args.keep + [labels] + args.covariates)]
-		else: 			table = table[np.unique(args.keep + [labels])]
+		if args.covariates: 	table = table[pd.unique(args.keep + [labels] + args.covariates)]
+		else: 			table = table[pd.unique(args.keep + [labels])]
 	if args.exclude: 		table = table.drop(columns = args.exclude)
 
 	if args.intermediates: table.to_csv(os.path.join(args.intermediates, 'table_filt.csv'), index = False)
@@ -106,12 +107,12 @@ def preprocess_data(table, labels, args):
 	if args.covariates:
 		if args.reference: 	ref_indx = y.isin(args.reference)
 		else: 			ref_indx = np.ones(y.size, dtype = bool) 
-		X, log = regress_out(X, args.covariates, ref_indx)
+		X, log = regress_out(X, args.covariates, ref_indx, args.significance)
 
 	if args.intermediates:
 		table = pd.concat((X, y), axis = 1)
 		table.to_csv(os.path.join(args.intermediates, 'table_filt_corr.csv'), index = False)
-		log.to_csv(os.path.join(args.intermediates, 'table_filt_corr_beta.csv'), index = False)
+		log.to_csv(os.path.join(args.intermediates, 'table_filt_corr_beta.csv'))
 
 	# Remove outliers, impute missing values and standardise dataset
 	X, y = clean_impute_standardise(X, y)
@@ -121,10 +122,10 @@ def preprocess_data(table, labels, args):
 	# Check groups
 	if args.groups:
 		groups = make_groups(args.groups)
-		group_labels = [', '.join(g) for g in groups]
+		group_labels = [', '.join(g) if len(g) > 1 else g[0] for g in groups]
 		for g_i in range(len(groups)): 	y[y.isin(groups[g_i])] = group_labels[g_i]
 		groups = group_labels
-		X = X.loc[y.isin(groups), :]	
+		X, y = X.loc[y.isin(groups), :], y[y.isin(groups)]
 
 		table = pd.concat((X, y), axis = 1)
 		table.sort_values(by = labels, key = lambda column: column.map(lambda e: group_labels.index(e)), inplace = True)
@@ -143,6 +144,7 @@ if __name__ == "__main__":
 	parser.add_argument("labels",			type=str,					help="Name of the column containing group labels.")
 	parser.add_argument("-g",	"--groups",	type=str, 	nargs='+', 	default=None,	help="Names of the groups to classify (default: use all groups).")		
 	parser.add_argument("-c",	"--covariates",	type=str, 	nargs='+', 	default=None,	help="Name of the columns containing covariates to be regressed out from the dataset (default: no regression).")	
+	parser.add_argument("-s",	"--significance", type=str, 			default=None,	help="Significance threshold for covariate regression, i.e. correction is preformed if regression coefficient has p-value less than the threshold (default: 0.05/number of features).")		
 	parser.add_argument("-r",	"--reference",	type=str,	nargs='+',	default=None,	help="Reference group(s) on which to calculate regression coefficients. Only used if covariates are provided (default: regress over the whole dataset).")
 	parser.add_argument("-e",	"--exclude",	type=str, 	nargs='+', 	default=None,	help="Name of the columns to exclude from the dataset (default: None).")
 	parser.add_argument("-k",	"--keep",	type=str, 	nargs='+', 	default=None,	help="Name of the columns to keep from the dataset (default: None).")	
