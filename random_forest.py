@@ -110,7 +110,7 @@ def random_forest_plot(X, y, results, config):
 	importances_ = importances[0:N]
 	importances_std_ = importances_std[0:N]
 
-	labels = list(np.unique(y))
+	labels = pd.unique(y)
 	table_plt = X.iloc[:, indx_]
 	table_plt['group'] = y
 	table_plt = pd.melt(table_plt, id_vars='group', var_name='feature')
@@ -176,7 +176,7 @@ def random_forest_classify(X, y, config, plot_flag = True):
 		'Precision': make_scorer(precision_score, average = 'macro', zero_division = 1),
 		'Recall': make_scorer(recall_score, average = 'macro', zero_division = 1)
 		}
-	if len(np.unique(y)) == 2:
+	if len(pd.unique(y)) == 2:
 		scoring['ROC-AUC'] = make_scorer(roc_auc_score, needs_proba = True)
 
 	steps = []
