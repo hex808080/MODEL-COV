@@ -67,6 +67,7 @@ The `classify.py` script provides a flexible framework for machine learning and 
 - `-g`, `--groups` (str): Names of the groups to classify (default: use all groups).
 - `-c`, `--covariates` (str): Name of the columns containing covariates to be regressed out from the dataset (default: None).
 - `-r`, `--reference` (str): Reference group(s) on which to calculate regression coefficients. Only used if covariates are provided (default: regress over the whole dataset).
+- `-s`, `--significance` (float): Significance threshold for covariate regression, i.e. correction is performed if regression coefficient has p-value less than the threshold (default: 0.05). 
 - `-e`, `--exclude` (str): Name of the columns to exclude from the dataset (default: None).
 - `-k`, `--keep` (str): Name of the columns to keep from the dataset (default: None).
 - `-a`, `--algorithm` (str): Name of the algorithm to use. A Python function with the same name must be available for import and contain a `run(y, X, config)` method (see **Notes**) (default: random_forest).
