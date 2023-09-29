@@ -50,7 +50,7 @@ def regress_out(data, indep_name, ref_indx = None, sigLevel = None):
 	dep_var = data.loc[:, ~data.columns.isin(indep_name)]
 	indep_var = data.loc[:, data.columns.isin(indep_name)]
 
-	if sigLevel == None: sigLevel = 0.05/len(dep_var.columns)
+	if sigLevel == None: sigLevel = 0.05 #/len(dep_var.columns)
 	else: sigLevel = float(sigLevel)
 
 	hdr = list(indep_var.columns) + [cov + "_2" for cov in indep_var.columns]
@@ -144,7 +144,7 @@ if __name__ == "__main__":
 	parser.add_argument("labels",			type=str,					help="Name of the column containing group labels.")
 	parser.add_argument("-g",	"--groups",	type=str, 	nargs='+', 	default=None,	help="Names of the groups to classify (default: use all groups).")		
 	parser.add_argument("-c",	"--covariates",	type=str, 	nargs='+', 	default=None,	help="Name of the columns containing covariates to be regressed out from the dataset (default: no regression).")	
-	parser.add_argument("-s",	"--significance", type=str, 			default=None,	help="Significance threshold for covariate regression, i.e. correction is preformed if regression coefficient has p-value less than the threshold (default: 0.05/number of features).")		
+	parser.add_argument("-s",	"--significance", type=str, 			default=None,	help="Significance threshold for covariate regression, i.e. correction is performed if regression coefficient has p-value less than the threshold (default: 0.05).")
 	parser.add_argument("-r",	"--reference",	type=str,	nargs='+',	default=None,	help="Reference group(s) on which to calculate regression coefficients. Only used if covariates are provided (default: regress over the whole dataset).")
 	parser.add_argument("-e",	"--exclude",	type=str, 	nargs='+', 	default=None,	help="Name of the columns to exclude from the dataset (default: None).")
 	parser.add_argument("-k",	"--keep",	type=str, 	nargs='+', 	default=None,	help="Name of the columns to keep from the dataset (default: None).")	
