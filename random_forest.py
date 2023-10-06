@@ -231,11 +231,11 @@ def run(X, y, config = {}):
 
 	config_rf = set_default_dict(config_rf, default_config)
 	config['random_forest_config'] = config_rf
- 
+
 	results = random_forest_classify(X, y, config)
 	
 	results_rng = []
-	t, d = [len(max(results['scores']['name'], key = len)) - len(t) for t in results['scores']['name']], [str(2 + abs(min(0, int(np.log10(abs(d)))))) for d in results['scores']['std']]
+	t, d = [len(max(results['scores']['name'], key = len)) - len(t) for t in results['scores']['name']], [str(2 + min(5, abs(min(0, int(np.log10(abs(d + np.finfo(np.float).eps))))))) for d in results['scores']['std']]
 	if config_rf['N_shuffle'] and (config_rf['N_shuffle'] > 0):
 		for n in tqdm (range(config_rf['N_shuffle']), desc = 'Randomising...'):
 			y = y.sample(frac = 1, random_state = config_rf['random_state'])
