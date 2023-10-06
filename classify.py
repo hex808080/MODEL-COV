@@ -10,7 +10,6 @@ import os
 
 def categorical_to_int(data):
 	# Convert categorical variables to integers
-
 	data_col = data.columns[data.dtypes == 'object']
 
 	for col in data_col:
@@ -95,7 +94,7 @@ def preprocess_data(table, labels, args):
 	if args.keep:
 		if args.covariates: 	table = table[pd.unique(args.keep + [labels] + args.covariates)]
 		else: 			table = table[pd.unique(args.keep + [labels])]
-	if args.exclude: 		table = table.drop(columns = args.exclude)
+	elif args.exclude: 		table = table.drop(columns = args.exclude)
 
 	if args.intermediates: table.to_csv(os.path.join(args.intermediates, 'table_filt.csv'), index = False)
 	
@@ -104,15 +103,16 @@ def preprocess_data(table, labels, args):
 	X = categorical_to_int(X)
 
 	# Regress out covariates (if any)
+	log = None
 	if args.covariates:
-		if args.reference: 	ref_indx = y.isin(args.reference)
-		else: 			ref_indx = np.ones(y.size, dtype = bool) 
+		if args.reference:	ref_indx = y.isin(args.reference)
+		else:			ref_indx = np.ones(y.size, dtype = bool) 
 		X, log = regress_out(X, args.covariates, ref_indx, args.significance)
 
 	if args.intermediates:
 		table = pd.concat((X, y), axis = 1)
 		table.to_csv(os.path.join(args.intermediates, 'table_filt_corr.csv'), index = False)
-		log.to_csv(os.path.join(args.intermediates, 'table_filt_corr_beta.csv'))
+		if log: log.to_csv(os.path.join(args.intermediates, 'table_filt_corr_beta.csv'))
 
 	# Remove outliers, impute missing values and standardise dataset
 	X, y = clean_impute_standardise(X, y)
@@ -123,6 +123,7 @@ def preprocess_data(table, labels, args):
 	if args.groups:
 		groups = make_groups(args.groups)
 		group_labels = [', '.join(g) if len(g) > 1 else g[0] for g in groups]
+		y = y.astype(str)
 		for g_i in range(len(groups)): 	y[y.isin(groups[g_i])] = group_labels[g_i]
 		groups = group_labels
 		X, y = X.loc[y.isin(groups), :], y[y.isin(groups)]
