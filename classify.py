@@ -112,7 +112,7 @@ def preprocess_data(table, labels, args):
 	if args.intermediates:
 		table = pd.concat((X, y), axis = 1)
 		table.to_csv(os.path.join(args.intermediates, 'table_filt_corr.csv'), index = False)
-		if log: log.to_csv(os.path.join(args.intermediates, 'table_filt_corr_beta.csv'))
+		if log is not None: log.to_csv(os.path.join(args.intermediates, 'table_filt_corr_beta.csv'))
 
 	# Remove outliers, impute missing values and standardise dataset
 	X, y = clean_impute_standardise(X, y)
